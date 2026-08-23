@@ -1,17 +1,9 @@
 vim.api.nvim_set_hl(0, "fsr.statusline.StlFilenameModified", { bold = true })
-vim.api.nvim_set_hl(
-    0,
-    "fsr.statusline.StlVimMode",
-    vim.tbl_extend(
-        "force",
-        vim.api.nvim_get_hl(0, { name = "Title", link = false }),
-        {
-            bold = true,
-            italic = false,
-            reverse = true,
-        }
-    )
-)
+vim.api.nvim_set_hl(0, "fsr.statusline.StlVimMode", {
+    fg = vim.api.nvim_get_hl(0, { name = "Title", link = false }).fg,
+    bold = true,
+    reverse = true,
+})
 
 ---@type fsr.statusline.Component[]
 return {
@@ -42,7 +34,7 @@ return {
     {
         rerender_event = "DiagnosticChanged",
         render = function(ctx)
-            ---`diagnostic_counts[i]` where `i` is **1-4** is the number of
+            ---`diagnostic_counts[level]` where `level` (**1**-**4**) is the number of
             ---a diagnostic count.
             ---- **1** is error count.
             ---- **2** is warning count.
