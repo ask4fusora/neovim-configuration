@@ -1,24 +1,34 @@
----@type string|nil
-local theme = vim.env.SYSTEM_THEME
+local color_theme = "onedark"
+vim.o.background = "dark"
 
-if theme and theme:find("Light") then
+---@type string|nil
+local system_theme = vim.env.SYSTEM_THEME
+if system_theme and system_theme:find("Light") then
+    color_theme = "onelight"
     vim.o.background = "light"
 end
 
-local success, jb = pcall(require, "jb")
+local success, onedarkpro = pcall(require, "onedarkpro")
 if not success then
-    vim.notify("`jb` is either not installed or not available.", vim.log.levels.ERROR)
+    vim.notify(
+        "`onedarkpro` is either not installed or not available.",
+        vim.log.levels.ERROR
+    )
     return
 end
 
-jb.setup({
-    transparent = true,
-    snacks = { explorer = { enabled = false } },
-    telescope = { enabled = false },
+onedarkpro.setup({
+    highlights = {
+        StatusLine = {},
+        StatusLineNC = {},
+        CursorLineNr = { bg = "NONE", extend = true },
+        CursorLineSign = { bg = "NONE" },
+        SignColumn = { bg = "NONE" },
+    },
+
+    options = {
+        transparency = true,
+    },
 })
 
-vim.cmd.colorscheme("jb")
-
--- Update `Cursor` highlight group.
-local hl_group = vim.api.nvim_get_hl(0, { name = "Custom_Statusbar" })
-vim.api.nvim_set_hl(0, "Cursor", { force = true, bg = hl_group.fg })
+vim.cmd.colorscheme(color_theme)
