@@ -20,14 +20,12 @@ local function stdin_lines()
     local first_level_mode = mode:sub(1, 1)
 
     -- If normal mode, return the entire buffer.
-
     if first_level_mode == "n" then
         local line_count = vim.api.nvim_buf_line_count(0)
         return vim.api.nvim_buf_get_lines(0, 0, line_count, true), 0, line_count
     end
 
     -- If visual mode, return only the selected lines.
-
     if
         first_level_mode == "v"
         or first_level_mode == "V"
@@ -46,7 +44,6 @@ local function stdin_lines()
     end
 
     -- Return nothing otherwise.
-
     return {}, 0, 0
 end
 
@@ -89,11 +86,13 @@ function M.format(formatters)
             assert(type(stdout) == "string", "`stdout` should be text.")
             ---@cast stdout string
 
+            -- `vim.system` normalize stdout line endings by replacing `\r\n`
+            -- with `\n`.
             local stdout_lines = vim.split(stdout, "\n", { plain = true })
 
-            if stdout_lines[#stdout_lines] == "" then
-                table.remove(stdout_lines, #stdout_lines)
-            end
+            -- Every line has its own line endings, therefore, after text
+            -- split, we will have an extra empty line needs removing.
+            table.remove(stdout_lines, #stdout_lines)
 
             vim.api.nvim_buf_set_lines(
                 0,
