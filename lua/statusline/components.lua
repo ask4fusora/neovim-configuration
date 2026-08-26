@@ -49,10 +49,10 @@ return {
                 "DiagnosticHint",
             }
 
-            return vim.iter(diagnostic_counts)
-                :map(function(level, count)
-                    ---@cast level integer
+            return vim.iter(ipairs(diagnostic_counts))
+                :map(function(count, level)
                     ---@cast count integer
+                    ---@cast level integer
                     return "%$"
                         .. hl_groups[level]
                         .. "$"
