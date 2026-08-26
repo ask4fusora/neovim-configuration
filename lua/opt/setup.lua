@@ -61,6 +61,7 @@ vim.o.sidescrolloff = 8
 -- Search features.
 
 vim.o.incsearch = true
+vim.o.ignorecase = true
 vim.o.smartcase = true
 
 -- Completion.
