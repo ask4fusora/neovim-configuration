@@ -38,7 +38,7 @@ vim.o.listchars = table.concat({
 
 -- Wrap.
 
-vim.o.wrap = true
+vim.o.wrap = false
 
 -- Neovim.
 

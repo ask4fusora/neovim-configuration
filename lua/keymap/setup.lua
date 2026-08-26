@@ -9,13 +9,13 @@ vim.keymap.set({ "n", "v" }, "<C-s>", function()
 end)
 
 vim.keymap.set("n", "<M-F>", function()
-    local formatters = fsr.formatters_by_filetype[vim.bo.filetype]
+    local formatters = fsr.formatter.formatters_by_filetype[vim.bo.filetype]
     require("formatter").format(formatters)
 end, { desc = "Format document" })
 
 vim.keymap.set("v", "<C-k><C-f>", function()
-    local formatters = fsr.formatters_by_filetype[vim.bo.filetype]
-    require("formatter").format(formatters, "'<,'>")
+    local formatters = fsr.formatter.formatters_by_filetype[vim.bo.filetype]
+    require("formatter").format(formatters)
 end, { desc = "Format selections" })
 
 vim.keymap.set(
