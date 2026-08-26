@@ -15,7 +15,7 @@ end, { desc = "Format document" })
 
 vim.keymap.set("v", "<C-k><C-f>", function()
     local formatters = fsr.formatters_by_filetype[vim.bo.filetype]
-    require("formatter").format(formatters, "'<,'>")
+    require("formatter").format(formatters)
 end, { desc = "Format selections" })
 
 vim.keymap.set(
