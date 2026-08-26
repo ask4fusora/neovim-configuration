@@ -52,6 +52,9 @@ end
 ---Format document range.
 function M.format(formatters)
     formatters = formatters or default_formatters()
+    if not next(formatters) then
+        return
+    end
 
     local buffer_path = vim.api.nvim_buf_get_name(0)
 
