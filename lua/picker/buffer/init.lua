@@ -1,11 +1,14 @@
 local M = {}
 
-local MAX_BUFFER_PICKER_LINES = 15
+local DEFAULT_WIDTH = 60
+local MAX_HEIGHT = 15
 
 local api = vim.api
 
+local bufnrs = {} ---@type integer[]
+
 ---@return integer[]
-local function list_buffers()
+local function listed_bufnrs()
     return vim.iter(vim.api.nvim_list_bufs())
         :filter(function(bufnr)
             return api.nvim_buf_is_valid(bufnr) and vim.bo[bufnr].buflisted
@@ -13,9 +16,8 @@ local function list_buffers()
         :totable()
 end
 
----@param bufnrs integer[]
 ---@return string[]
-local function buffer_names(bufnrs)
+local function buffer_names()
     return vim.tbl_map(function(bufnr)
         local buf_name = api.nvim_buf_get_name(bufnr)
 
@@ -39,29 +41,35 @@ local function buffer_names(bufnrs)
     end, bufnrs)
 end
 
----@param buffer_paths string[]
 ---@return integer bufnr
-local function create_picker_buffer(buffer_paths)
+local function create_picker_buffer()
     local bufnr = api.nvim_create_buf(false, true)
 
-    api.nvim_buf_set_lines(bufnr, 0, -1, false, buffer_paths)
     vim.bo[bufnr].modifiable = false
     vim.bo[bufnr].bufhidden = "wipe"
 
     return bufnr
 end
 
----@param buffer_paths string[]
+---@param bufnr integer
+---@param lines string[]
+local function set_buffer_lines(bufnr, lines)
+    vim.bo[bufnr].modifiable = true
+    api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+    vim.bo[bufnr].modifiable = false
+end
+
+---@param lines string[]
 ---@return integer width
 ---@return integer height
-local function calc_buf_dimensions(buffer_paths)
-    local width = 1
-    local height = math.min(#buffer_paths, MAX_BUFFER_PICKER_LINES)
+local function picker_dimensions(lines)
+    local height = math.min(#lines, MAX_HEIGHT)
+    local width = vim.iter(lines)
+        :fold(DEFAULT_WIDTH, function(current_max_width, l)
+            return math.max(current_max_width, vim.fn.strdisplaywidth(l))
+        end)
 
-    for _, line in ipairs(buffer_paths) do
-        width = math.max(width, vim.fn.strdisplaywidth(line))
-    end
-
+    -- Ensure width does not exceed horizontal viewport.
     width = math.min(
         width + vim.o.sidescrolloff * 2,
         vim.o.columns - vim.o.sidescrolloff * 2
@@ -70,42 +78,52 @@ local function calc_buf_dimensions(buffer_paths)
     return width, height
 end
 
----@param bufnrs integer[]
----@param current_bufnr integer
+---@class fsr.picker.buffer.open_picker_win.InitOpts
+---@field width integer
+---@field height integer
+
 ---@param picker_bufnr integer
----@param width integer
----@param height integer
-local function open_picker_win(
-    bufnrs,
-    current_bufnr,
-    picker_bufnr,
-    width,
-    height
-)
+---@param init_opts fsr.picker.buffer.open_picker_win.InitOpts
+local function open_picker_win(picker_bufnr, init_opts)
+    local invocation_bufnr = api.nvim_get_current_buf()
+    ---@type integer
+    local initial_cursor_line = vim.iter(ipairs(bufnrs)):find(function(_, b)
+        return b == invocation_bufnr
+    end)
+
     local winid = api.nvim_open_win(picker_bufnr, true, {
-        relative = "editor",
         style = "minimal",
         title = " Buffers ",
         title_pos = "left",
-        width = width,
-        height = height,
-        row = math.floor((vim.o.lines - height) / 2),
-        col = math.floor((vim.o.columns - width) / 2),
+
+        -- Initialization options required by neovim.
+        relative = "editor",
+        row = math.floor((vim.o.lines - init_opts.height) / 2),
+        col = math.floor((vim.o.columns - init_opts.width) / 2),
+        width = init_opts.width,
+        height = init_opts.height,
     })
+
+    api.nvim_win_set_cursor(winid, { initial_cursor_line, 0 })
 
     vim.wo[winid].cursorline = true
     vim.wo[winid].wrap = false
 
-    -- Initially select the current buffer.
-
-    for index, bufnr in ipairs(bufnrs) do
-        if bufnr == current_bufnr then
-            api.nvim_win_set_cursor(winid, { index, 0 })
-            break
-        end
-    end
-
     return winid
+end
+
+---@param winid integer
+---@param width integer
+---@param height integer Must be greater than 0.
+local function set_picker_win_bounds(winid, width, height)
+    assert(height > 0, "`height` of picker must be greater than 0.")
+    api.nvim_win_set_config(winid, {
+        relative = "editor",
+        row = math.floor((vim.o.lines - height) / 2),
+        col = math.floor((vim.o.columns - width) / 2),
+        width = width,
+        height = height,
+    })
 end
 
 ---@param winid integer
@@ -115,38 +133,42 @@ local function close_picker(winid)
     end
 end
 
----@param winid integer
----@param bufnrs integer[]
-local function open_buffer(winid, bufnrs)
-    local index = unpack(api.nvim_win_get_cursor(winid))
+---@param picker_winid integer
+local function open_buffer(picker_winid)
+    local index = unpack(api.nvim_win_get_cursor(picker_winid))
     local selected_bufnr = bufnrs[index]
 
-    close_picker(winid)
+    close_picker(picker_winid)
 
     if selected_bufnr and api.nvim_buf_is_valid(selected_bufnr) then
         api.nvim_set_current_buf(selected_bufnr)
     end
 end
 
----@param current_winid integer
+---@param winid integer
+---@param bufnr integer
+local function update_picker(winid, bufnr)
+    bufnrs = listed_bufnrs()
+    if #bufnrs == 0 then
+        return close_picker(winid)
+    end
+
+    local lines = buffer_names()
+    set_buffer_lines(bufnr, lines)
+    local width, height = picker_dimensions(lines)
+    assert(height > 0, "`height` should be greater than 0.")
+    set_picker_win_bounds(winid, width, height)
+end
+
+---@param invocation_winid integer
 ---@param picker_winid integer
 ---@param picker_bufnr integer
----@param bufnrs integer[]
----@param buffer_paths string[]
-local function close_buffer(
-    current_winid,
-    picker_winid,
-    picker_bufnr,
-    bufnrs,
-    buffer_paths
-)
+local function close_buffer(invocation_winid, picker_winid, picker_bufnr)
     local index = unpack(api.nvim_win_get_cursor(picker_winid))
     local selected_bufnr = bufnrs[index]
 
-    local success = pcall(api.nvim_win_call, current_winid, function()
-        api.nvim_buf_delete(selected_bufnr, {
-            force = false,
-        })
+    local success = pcall(api.nvim_win_call, invocation_winid, function()
+        api.nvim_buf_delete(selected_bufnr, { force = false })
     end)
 
     if not success then
@@ -157,44 +179,15 @@ local function close_buffer(
         return
     end
 
-    -- Remove selected buffer from memory.
-
-    table.remove(bufnrs, index)
-    table.remove(buffer_paths, index)
-
-    -- Remove selected buffer from picker UI.
-
-    vim.bo[picker_bufnr].modifiable = true
-    api.nvim_buf_set_lines(picker_bufnr, 0, -1, false, buffer_paths)
-    vim.bo[picker_bufnr].modifiable = false
-
-    -- Update picker height.
-
-    local _, height = calc_buf_dimensions(buffer_paths)
-    if height == 0 then
-        close_picker(picker_winid)
-        return
-    end
-
-    api.nvim_win_set_config(picker_winid, {
-        height = height,
-    })
+    update_picker(picker_winid, picker_bufnr)
 end
 
----@param current_winid integer
+---@param invocation_winid integer
 ---@param picker_winid integer
 ---@param picker_bufnr integer
----@param bufnrs integer[]
----@param buffer_paths string[]
-local function set_picker_keymaps(
-    current_winid,
-    picker_winid,
-    picker_bufnr,
-    bufnrs,
-    buffer_paths
-)
+local function set_picker_keymaps(invocation_winid, picker_winid, picker_bufnr)
     vim.keymap.set("n", "<CR>", function()
-        open_buffer(picker_winid, bufnrs)
+        open_buffer(picker_winid)
     end, {
         buffer = picker_bufnr,
         nowait = true,
@@ -215,40 +208,46 @@ local function set_picker_keymaps(
     })
 
     vim.keymap.set("n", "dd", function()
-        close_buffer(
-            current_winid,
-            picker_winid,
-            picker_bufnr,
-            bufnrs,
-            buffer_paths
-        )
+        close_buffer(invocation_winid, picker_winid, picker_bufnr)
     end, {
         buffer = picker_bufnr,
         nowait = true,
     })
 end
 
+---@param picker_winid integer
+---@param picker_bufnr integer
+local function set_picker_autocmd(picker_winid, picker_bufnr)
+    vim.api.nvim_create_autocmd("BufWritePost", {
+        group = vim.api.nvim_create_augroup(
+            "fsr.picker.buffer.UpdatePicker",
+            { clear = true }
+        ),
+        callback = function()
+            update_picker(picker_winid, picker_bufnr)
+        end,
+    })
+end
+
 function M.open()
-    local bufnrs = list_buffers()
+    bufnrs = listed_bufnrs()
     if #bufnrs == 0 then
         return
     end
 
-    local current_bufnr = api.nvim_get_current_buf()
-    local current_winid = api.nvim_get_current_win()
-    local buffer_paths = buffer_names(bufnrs)
-    local picker_bufnr = create_picker_buffer(buffer_paths)
-    local width, height = calc_buf_dimensions(buffer_paths)
-    local picker_winid =
-        open_picker_win(bufnrs, current_bufnr, picker_bufnr, width, height)
+    local invocation_winid = api.nvim_get_current_win()
 
-    set_picker_keymaps(
-        current_winid,
-        picker_winid,
-        picker_bufnr,
-        bufnrs,
-        buffer_paths
-    )
+    local lines = buffer_names()
+    local picker_bufnr = create_picker_buffer()
+    set_buffer_lines(picker_bufnr, lines)
+    local width, height = picker_dimensions(lines)
+    local picker_winid = open_picker_win(picker_bufnr, {
+        width = width,
+        height = height,
+    })
+
+    set_picker_keymaps(invocation_winid, picker_winid, picker_bufnr)
+    set_picker_autocmd(picker_winid, picker_bufnr)
 end
 
 return M
