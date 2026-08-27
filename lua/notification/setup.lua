@@ -7,4 +7,8 @@ if not success then
     return
 end
 
-mn.setup()
+mn.setup({
+    window = {
+        max_width_share = 0.618,
+    },
+})
