@@ -1,4 +1,4 @@
-vim.ui.open = require("tweak").nushell_ui_open
+vim.ui.open = require("tweak").nu_start
 
 -- Enable the cache loader. Neovim will load much faster after first launch.
 
