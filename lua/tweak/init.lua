@@ -1,5 +1,7 @@
 local M = {}
 
+local NU_START_TIMEOUT_MS = 3000
+
 ---Opens `path` with Nushell's `start` method, or returns (but does not show)
 ---an error message on failure.
 ---
@@ -38,8 +40,14 @@ function M.nu_start(path, opts)
         path = vim.fs.normalize(path)
     end
 
-    local cmd ---@type string[]
-    local job_opts = { text = true, detach = true } ---@type vim.SystemOpts
+    ---@type string[]
+    local cmd
+    ---@type vim.SystemOpts
+    local job_opts = {
+        text = true,
+        detach = true,
+        timeout = NU_START_TIMEOUT_MS,
+    }
 
     if opts.cmd then
         cmd = vim.list_extend(opts.cmd --[[@as string[] ]], { path })
@@ -49,7 +57,14 @@ function M.nu_start(path, opts)
             job_opts.stderr = false
         end
     else
-        cmd = { "nu", "-c", ("start '%s'"):format(path) }
+        cmd = {
+            "nu",
+            "--no-config-file",
+            "--no-std-lib",
+            "--no-history",
+            "-c",
+            ("start '%s'"):format(path),
+        }
     end
 
     return vim.system(cmd, job_opts), nil
