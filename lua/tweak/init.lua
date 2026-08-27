@@ -51,11 +51,6 @@ function M.nu_start(path, opts)
 
     if opts.cmd then
         cmd = vim.list_extend(opts.cmd --[[@as string[] ]], { path })
-
-        if cmd[1] == "xdg-open" then
-            job_opts.stdout = false
-            job_opts.stderr = false
-        end
     else
         cmd = {
             "nu",
