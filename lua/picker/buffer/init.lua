@@ -6,6 +6,7 @@ local MAX_HEIGHT = 15
 local api = vim.api
 
 local bufnrs = {} ---@type integer[]
+local is_picker_open = false
 
 ---@return integer[]
 local function listed_bufnrs()
@@ -139,6 +140,7 @@ local function open_buffer(picker_winid)
     local selected_bufnr = bufnrs[index]
 
     close_picker(picker_winid)
+    is_picker_open = false
 
     if selected_bufnr and api.nvim_buf_is_valid(selected_bufnr) then
         api.nvim_set_current_buf(selected_bufnr)
@@ -224,6 +226,10 @@ local function set_picker_autocmd(picker_winid, picker_bufnr)
             { clear = true }
         ),
         callback = function()
+            if not is_picker_open then
+                return
+            end
+
             update_picker(picker_winid, picker_bufnr)
         end,
     })
@@ -245,6 +251,8 @@ function M.open()
         width = width,
         height = height,
     })
+
+    is_picker_open = true
 
     set_picker_keymaps(invocation_winid, picker_winid, picker_bufnr)
     set_picker_autocmd(picker_winid, picker_bufnr)
