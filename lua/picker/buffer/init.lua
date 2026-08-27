@@ -15,15 +15,27 @@ end
 
 ---@param bufnrs integer[]
 ---@return string[]
-local function buffers_to_paths(bufnrs)
+local function buffer_names(bufnrs)
     return vim.tbl_map(function(bufnr)
         local buf_name = api.nvim_buf_get_name(bufnr)
-        local buf_fname = buf_name == "" and "untitled"
-            or vim.fn.fnamemodify(buf_name, ":~:.")
+
+        if vim.bo[bufnr].buftype == "quickfix" then
+            local winid = vim.fn.bufwinid(bufnr)
+            local buftype = vim.api.nvim_eval_statusline("%q", {
+                winid = winid,
+            }).str
+            local title = vim.w[winid].quickfix_title ---@type string
+
+            buf_name = ("%s %s"):format(buftype, title)
+        elseif buf_name == "" then
+            buf_name = "untitled"
+        else
+            buf_name = vim.fn.fnamemodify(buf_name, ":~:.")
+        end
 
         local modified_marker = vim.bo[bufnr].modified and " [+]" or ""
 
-        return ("%s%s"):format(buf_fname, modified_marker)
+        return ("%s%s"):format(buf_name, modified_marker)
     end, bufnrs)
 end
 
@@ -224,7 +236,7 @@ function M.open()
 
     local current_bufnr = api.nvim_get_current_buf()
     local current_winid = api.nvim_get_current_win()
-    local buffer_paths = buffers_to_paths(bufnrs)
+    local buffer_paths = buffer_names(bufnrs)
     local picker_bufnr = create_picker_buffer(buffer_paths)
     local width, height = calc_buf_dimensions(buffer_paths)
     local picker_winid =
