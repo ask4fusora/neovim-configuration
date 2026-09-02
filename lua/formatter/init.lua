@@ -89,13 +89,11 @@ function M.format(formatters)
             assert(type(stdout) == "string", "`stdout` should be text.")
             ---@cast stdout string
 
-            -- `vim.system` normalize stdout line endings by replacing `\r\n`
-            -- with `\n`.
-            local stdout_lines = vim.split(stdout, "\n", { plain = true })
-
-            -- Every line has its own line endings, therefore, after text
-            -- split, we will have an extra empty line needs removing.
-            table.remove(stdout_lines, #stdout_lines)
+            -- `vim.system` normalize stdout line endings to `\n`.
+            local stdout_lines = vim.split(stdout, "\n", {
+                plain = true,
+                trimempty = true,
+            })
 
             vim.api.nvim_buf_set_lines(
                 0,
