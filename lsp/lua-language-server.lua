@@ -98,7 +98,7 @@ return {
         ---@cast vimruntime_dir string
 
         local libraries = {
-            vim.fs.joinpath(vimruntime_dir, "lua"),
+            vimruntime_dir,
             vim.fs.joinpath(
                 vim.fn.stdpath("data"),
                 "site",
