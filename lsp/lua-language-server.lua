@@ -31,9 +31,9 @@ return {
     },
 
     root_dir = function(bufnr, on_dir)
-        local searchexpr = ("/%s/"):format(dotnvim)
         local buffer_path = vim.api.nvim_buf_get_name(bufnr)
-        local is_in_project_settings_dir = buffer_path:find(searchexpr, 1, true)
+        local is_in_project_settings_dir =
+            require("util.path").contains_folder(buffer_path, dotnvim)
 
         if is_in_project_settings_dir then
             local cwd = vim.fs.root(bufnr, { dotnvim })
@@ -47,7 +47,7 @@ return {
 
         local user_settings_dir = vim.fn.stdpath("config")
         local is_in_user_settings_dir =
-            require("lua.string").starts_with(buffer_path, user_settings_dir)
+            require("util.string").starts_with(buffer_path, user_settings_dir)
 
         if is_in_user_settings_dir then
             return on_dir(user_settings_dir)
@@ -74,10 +74,9 @@ return {
             return
         end
 
-        ---Project settings folder name.
-        local searchexpr = ("/%s/"):format(dotnvim)
-        local is_in_project_settings_dir = root_dir:find(searchexpr, 1, true)
-        local is_in_user_settings_dir = require("lua.string").starts_with(
+        local is_in_project_settings_dir =
+            require("util.path").contains_folder(root_dir, dotnvim)
+        local is_in_user_settings_dir = require("util.string").starts_with(
             root_dir,
             vim.fn.stdpath("config")
         )
