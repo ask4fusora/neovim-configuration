@@ -1,5 +1,7 @@
 local root_markers = {
-    "moon.mod", "moon.mod.json", "moon.work",
+    "moon.mod",
+    "moon.mod.json",
+    "moon.work",
 }
 
 ---@type vim.lsp.Config

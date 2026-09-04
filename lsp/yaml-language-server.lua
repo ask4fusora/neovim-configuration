@@ -1,8 +1,6 @@
 ---@type vim.lsp.Config
 return {
-    cmd = require("lsp.adapter.node_modules").cmd(
-        "yaml-language-server"
-    ),
+    cmd = require("lsp.adapter.node_modules").cmd("yaml-language-server"),
     filetypes = {
         "yaml",
     },
