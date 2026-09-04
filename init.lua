@@ -70,3 +70,7 @@ initializer.register({
         },
     },
 })
+
+initializer.require_modules(nil, {
+    "project_settings.setup",
+})
