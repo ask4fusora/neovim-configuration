@@ -1,6 +1,5 @@
-local PROJECT_SETTINGS_FOLDER_NAME = ".nvim"
-local project_settings_dir =
-    vim.fs.joinpath(vim.fn.getcwd(), PROJECT_SETTINGS_FOLDER_NAME)
+local folder_name = require("project_settings").PROJECT_SETTINGS_FOLDER_NAME
+local project_settings_dir = vim.fs.joinpath(vim.fn.getcwd(), folder_name)
 
 if vim.fn.isdirectory(project_settings_dir) == 1 then
     -- `runtimepath` is a string, with `,` as separator.
