@@ -105,6 +105,8 @@ local function open_picker_win(picker_bufnr, init_opts)
         height = init_opts.height,
     })
 
+    is_picker_open = true
+
     api.nvim_win_set_cursor(winid, { initial_cursor_line, 0 })
 
     vim.wo[winid].cursorline = true
@@ -131,6 +133,7 @@ end
 local function close_picker(winid)
     if api.nvim_win_is_valid(winid) then
         api.nvim_win_close(winid, true)
+        is_picker_open = false
     end
 end
 
@@ -140,7 +143,6 @@ local function open_buffer(picker_winid)
     local selected_bufnr = bufnrs[index]
 
     close_picker(picker_winid)
-    is_picker_open = false
 
     if selected_bufnr and api.nvim_buf_is_valid(selected_bufnr) then
         api.nvim_set_current_buf(selected_bufnr)
@@ -251,8 +253,6 @@ function M.open()
         width = width,
         height = height,
     })
-
-    is_picker_open = true
 
     set_picker_keymaps(invocation_winid, picker_winid, picker_bufnr)
     set_picker_autocmd(picker_winid, picker_bufnr)
