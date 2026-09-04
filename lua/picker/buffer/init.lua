@@ -216,6 +216,14 @@ local function set_picker_keymaps(invocation_winid, picker_winid, picker_bufnr)
     end, {
         buffer = picker_bufnr,
         nowait = true,
+        desc = "Close selected buffer",
+    })
+
+    vim.keymap.set("n", "<C-s>", function()
+        vim.cmd.wa()
+    end, {
+        buffer = picker_bufnr,
+        nowait = true,
     })
 end
 
