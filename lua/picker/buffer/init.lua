@@ -87,7 +87,7 @@ end
 ---@param init_opts fsr.picker.buffer.open_picker_win.InitOpts
 local function open_picker_win(picker_bufnr, init_opts)
     local invocation_bufnr = api.nvim_get_current_buf()
-    ---@type integer
+    ---@type integer|nil
     local initial_cursor_line = vim.iter(ipairs(bufnrs)):find(function(_, b)
         return b == invocation_bufnr
     end)
@@ -107,7 +107,7 @@ local function open_picker_win(picker_bufnr, init_opts)
 
     is_picker_open = true
 
-    api.nvim_win_set_cursor(winid, { initial_cursor_line, 0 })
+    api.nvim_win_set_cursor(winid, { initial_cursor_line or 1, 0 })
 
     vim.wo[winid].cursorline = true
     vim.wo[winid].wrap = false
