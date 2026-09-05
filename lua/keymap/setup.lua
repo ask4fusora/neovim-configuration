@@ -1,8 +1,10 @@
+local keymap = require("keymap")
+
 vim.g.mapleader = " "
 
-vim.keymap.set("ca", "grep", "silent grep!")
+keymap.set_cabbrev("grep", "silent grep!")
 
-vim.keymap.set("ca", "ls", "PickBuffer")
+keymap.set_cabbrev("ls", "PickBuffer")
 
 vim.keymap.set({ "n", "v" }, "<C-s>", function()
     vim.cmd("silent w")
