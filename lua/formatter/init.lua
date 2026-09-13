@@ -63,17 +63,22 @@ local function format_with_external_command(formatter)
     local start_linenr, end_linenr = format_range()
     local stdin = vim.api.nvim_buf_get_lines(0, start_linenr, end_linenr, true)
 
-    local format_result = vim.system(command, {
+    local out = vim.system(command, {
         text = true,
         stdin = stdin,
-    }):wait()
+    }, function(out)
+        local stdout = out.stdout
+        out.stdout = stdout and require("util.ansi").strip(stdout)
+        local stderr = out.stderr
+        out.stderr = stderr and require("util.ansi").strip(stderr)
+    end):wait()
 
-    if format_result.code ~= 0 then
-        vim.notify(format_result.stderr, vim.log.levels.ERROR)
+    if out.code ~= 0 then
+        vim.notify(out.stderr, vim.log.levels.ERROR)
         return
     end
 
-    local stdout = format_result.stdout
+    local stdout = out.stdout
     assert(type(stdout) == "string", "`stdout` should be text.")
     ---@cast stdout string
 
