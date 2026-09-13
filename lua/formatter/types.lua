@@ -1,3 +1,5 @@
+---@meta
+
 ---@class fsr.formatter.Formatter.LanguageServerChoice
 ---@field name string
 

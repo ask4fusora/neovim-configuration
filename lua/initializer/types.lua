@@ -1,3 +1,5 @@
+---@meta
+
 ---@class fsr.initializer.Registration
 ---@field event string
 ---@field pattern string|string[]?

@@ -1,3 +1,5 @@
+---@meta
+
 ---@class fsr.statusline.Context
 ---@field winid integer
 ---@field bufnr integer
