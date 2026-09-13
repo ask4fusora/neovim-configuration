@@ -6,4 +6,4 @@
 
 ---@class fsr.statusline.Component
 ---@field rerender_event string|nil
----@field render fun(ctx: fsr.statusline.Context): string
+---@field render fun(ctx: fsr.statusline.Context): string|nil

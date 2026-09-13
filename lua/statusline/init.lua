@@ -18,7 +18,7 @@ function M.render()
             return c.render(ctx)
         end)
         :filter(function(res)
-            return res ~= ""
+            return type(res) == "string" and res ~= ""
         end)
         :join("  ")
 end
