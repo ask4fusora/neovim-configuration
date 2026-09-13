@@ -52,4 +52,16 @@ M.register_formatters({ "json", "jsonc" }, {
     { language_server = { name = "json-language-server" } },
 })
 
+M.register_formatters({ "markdown" }, {
+    {
+        external = {
+            command = "dprint",
+            arguments = {
+                "fmt",
+                "--stdin=md",
+            },
+        },
+    },
+})
+
 return M
