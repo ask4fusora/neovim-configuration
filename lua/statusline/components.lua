@@ -119,7 +119,7 @@ return {
     },
     {
         render = function(ctx)
-            return require("util.string").title_case(vim.bo[ctx.bufnr].filetype)
+            return vim.bo[ctx.bufnr].filetype
         end,
     },
     {
