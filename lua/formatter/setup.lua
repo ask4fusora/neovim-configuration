@@ -17,7 +17,7 @@ M.register_formatters({ "typst" }, {
     { language_server = { name = "tinymist" } },
 })
 
-M.register_formatters({ "nu" }, {
+M.register_formatters({ "nu", "nuon" }, {
     { external = { command = "nufmt", arguments = { "--stdin" } } },
 })
 

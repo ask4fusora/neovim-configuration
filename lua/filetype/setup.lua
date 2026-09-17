@@ -4,6 +4,7 @@ vim.filetype.add({
         mbti = "moonbit",
         moonbit = "moonbit",
         mbtp = "moonbit_mbtp",
+        nuon = "nuon",
     },
     filename = {
         ["moon.pkg"] = "moonbit",
