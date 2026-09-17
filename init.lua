@@ -63,6 +63,14 @@ initializer.register({
         },
     },
     {
+        event = "FileType",
+        pattern = { "nu", "nuon" },
+        once = false,
+        module_names = {
+            "ftplugin.nu.editorconfig.setup",
+        },
+    },
+    {
         event = "BufEnter",
         module_names = {
             "formatter.setup",
