@@ -36,9 +36,9 @@ local function buffer_names()
             buf_name = vim.fn.fnamemodify(buf_name, ":~:.")
         end
 
-        local modified_marker = vim.bo[bufnr].modified and " [+]" or ""
+        local modified_marker = vim.bo[bufnr].modified and "[+]" or ""
 
-        return ("%s%s"):format(buf_name, modified_marker)
+        return ("%s %s"):format(buf_name, modified_marker)
     end, bufnrs)
 end
 
