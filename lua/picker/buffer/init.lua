@@ -10,9 +10,9 @@ local is_picker_open = false
 
 ---@return integer[]
 local function listed_bufnrs()
-    return vim.iter(vim.api.nvim_list_bufs())
-        :filter(function(bufnr)
-            return api.nvim_buf_is_valid(bufnr) and vim.bo[bufnr].buflisted
+    return vim.iter(vim.fn.getbufinfo({ buflisted = 1 }))
+        :map(function(buf)
+            return buf.bufnr
         end)
         :totable()
 end
